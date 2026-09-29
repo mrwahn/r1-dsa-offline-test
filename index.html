@@ -1,14 +1,4261 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DSA - Neex Offline</title>
-<script>
-window.location.replace("http://dsa5.local:5002/");
-</script>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1.0,
+      maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#e66b21">
+
+<title>Neex</title>
+
+<style>
+* {
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body {
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+    color:#eee;
+    font-family:monospace;
+}
+
+/* =========================================================
+   GRUNDRAHMEN
+========================================================= */
+
+#app {
+    position:relative;
+    width:100%;
+    height:100vh;
+    background:#000;
+    overflow:hidden;
+}
+
+/* Nur vier Ecken statt durchgehendem Rahmen */
+
+.corner {
+    position:fixed;
+    width:17px;
+    height:17px;
+    z-index:50;
+    pointer-events:none;
+}
+
+.corner.tl {
+    display:none;
+}
+
+.corner.tr {
+    display:none;
+}
+
+.corner.bl {
+    bottom:0;
+    left:0;
+    border-bottom:2px solid #fff;
+    border-left:2px solid #fff;
+}
+
+.corner.br {
+    bottom:0;
+    right:0;
+    border-bottom:2px solid #fff;
+    border-right:2px solid #fff;
+}
+
+/* Aktiver Inhaltsmodus */
+body.content-mode .corner.bl {
+    border-bottom-color:#e66b21;
+    border-left-color:#e66b21;
+}
+
+body.content-mode .corner.br {
+    border-bottom-color:#e66b21;
+    border-right-color:#e66b21;
+}
+
+
+/* =========================================================
+   ANSICHTEN
+========================================================= */
+
+.view {
+    display:none;
+    width:100%;
+    height:100vh;
+    padding:2px 3px 4px;
+    overflow-y:hidden;
+    touch-action:none;
+    scrollbar-width:none;
+}
+
+/* Erst im aktivierten Inhaltsmodus darf die Seite
+   mit dem Finger normal gescrollt werden. */
+.view.content-active {
+    overflow-y:auto;
+    touch-action:pan-y;
+}
+
+.view::-webkit-scrollbar {
+    display:none;
+}
+
+.view.active {
+    display:flex;
+    flex-direction:column;
+}
+
+.view.content-active {
+    border-bottom:none;
+}
+
+.header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    min-height:22px;
+    margin-bottom:8px;
+    font-size:11px;
+    color:#aaa;
+}
+
+.header-title {
+    color:#f0eee8;
+}
+
+.back {
+    color:#e66b21;
+    cursor:pointer;
+    padding:4px 6px 4px 0;
+}
+
+.orange {
+    color:#e66b21;
+}
+
+.divider {
+    border-top:1px solid #38332e;
+    margin:7px 0;
+}
+
+
+/* =========================================================
+   HOME 1
+========================================================= */
+
+.hero-name {
+    font-size:15px;
+    color:#e66b21;
+    letter-spacing:1px;
+}
+
+.resource-card {
+    padding:7px 2px;
+    cursor:pointer;
+}
+
+.resource-line {
+    display:grid;
+    grid-template-columns:1fr 48px;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+}
+
+.resource-value {
+    text-align:right;
+    color:#fff;
+    font-size:11px;
+}
+
+.bar {
+    height:13px;
+    display:flex;
+    align-items:center;
+    gap:2px;
+    overflow:hidden;
+}
+
+.bar-segment {
+    width:1px;
+    height:10px;
+    flex:1 1 1px;
+    max-width:2px;
+    background:#242424;
+}
+
+.bar-segment.lep-on {
+    background:#55d66b;
+}
+
+.bar-segment.lep-mid {
+    background:#e69a32;
+}
+
+.bar-segment.lep-low {
+    background:#e04b45;
+}
+
+.bar-segment.asp-on {
+    background:#3c8cff;
+}
+
+.stats {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:5px 13px;
+    margin:5px 0;
+}
+
+.stat {
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    padding:4px 1px;
+}
+
+.stat span:first-child {
+    color:#aaa;
+}
+
+.stat span:last-child {
+    color:#f4f1ea;
+}
+
+.weapon {
+    font-size:10px;
+    padding:4px 1px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:5px;
+}
+
+.weapon-name {
+    color:#aaa;
+}
+
+.weapon-values {
+    color:#eee;
+}
+
+.home-buttons {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    margin-top:auto;
+    padding-top:7px;
+}
+
+.main-button {
+    min-height:34px;
+    border:1px solid #4d443d;
+    background:#12100e;
+    color:#eee;
+    font-family:monospace;
+    font-size:12px;
+    cursor:pointer;
+}
+
+.main-button.primary {
+    background:#e66b21;
+    border-color:#e66b21;
+    color:#090909;
+    font-weight:bold;
+}
+
+.main-button:active {
+    transform:scale(.98);
+}
+
+.page-hint {
+    text-align:center;
+    font-size:9px;
+    color:#6d665f;
+    margin-top:5px;
+}
+
+
+#offlineUpdateButton {
+    position: fixed;
+    left: 50%;
+    bottom: 4px;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 4px 8px;
+    border: 1px solid #777;
+    border-radius: 4px;
+    background: #111;
+    color: #fff;
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+/* =========================================================
+   HOME 2 / MENÜ
+========================================================= */
+
+.menu-title {
+    color:#e66b21;
+    font-size:14px;
+    margin:3px 0 7px;
+}
+
+.menu-item {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    min-height:34px;
+    padding:7px 4px;
+    border-bottom:1px solid #292622;
+    font-size:11px;
+    cursor:pointer;
+}
+
+.menu-item:active {
+    background:#211b17;
+}
+
+.menu-arrow {
+    color:#e66b21;
+}
+
+
+/* =========================================================
+   PLATZHALTER-SEITEN
+========================================================= */
+
+.placeholder {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+}
+
+.placeholder h2 {
+    margin:3px 0 9px;
+    font-size:15px;
+    color:#e66b21;
+    font-weight:normal;
+}
+
+.placeholder p {
+    font-size:10px;
+    line-height:1.45;
+    color:#aaa;
+}
+
+.placeholder-entry {
+    border-bottom:1px solid #292622;
+    padding:8px 3px;
+    font-size:11px;
+}
+
+.placeholder-entry::before {
+    content:"> ";
+    color:#e66b21;
+}
+
+
+/* =========================================================
+   RESSOURCEN POPUP
+========================================================= */
+
+#overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:100;
+    background:rgba(0,0,0,.84);
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+#popup {
+    position:relative;
+    width:100%;
+    max-width:230px;
+    background:#0e0d0c;
+    padding:15px 13px 13px;
+}
+
+/* Auch Popup nur mit vier Ecken */
+
+#popup::before,
+#popup::after {
+    content:"";
+    position:absolute;
+    width:14px;
+    height:14px;
+    pointer-events:none;
+}
+
+#popup::before {
+    top:0;
+    left:0;
+    border-top:2px solid #e66b21;
+    border-left:2px solid #e66b21;
+}
+
+#popup::after {
+    bottom:0;
+    right:0;
+    border-bottom:2px solid #e66b21;
+    border-right:2px solid #e66b21;
+}
+
+.popup-title {
+    color:#e66b21;
+    font-size:12px;
+}
+
+.bigvalue {
+    text-align:center;
+    font-size:25px;
+    margin:16px 0 2px;
+}
+
+.delta {
+    text-align:center;
+    color:#e66b21;
+    font-size:14px;
+    min-height:18px;
+}
+
+.help {
+    text-align:center;
+    font-size:9px;
+    color:#777;
+    margin:13px 0;
+}
+
+.buttons {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+}
+
+.buttons button {
+    font-family:monospace;
+    font-size:10px;
+    padding:9px 3px;
+    color:#eee;
+    background:#171513;
+    border:1px solid #49433e;
+}
+
+.buttons button:last-child {
+    background:#e66b21;
+    color:#080808;
+    border-color:#e66b21;
+}
+
+
+/* =========================================================
+   FEHLER
+========================================================= */
+
+#error {
+    display:none;
+    position:fixed;
+    left:14px;
+    right:14px;
+    bottom:14px;
+    z-index:200;
+    padding:8px;
+    background:#e66b21;
+    color:#080808;
+    font-size:10px;
+}
+
+/* =========================================================
+   HOME 1 – NEUES RESSOURCENLAYOUT
+========================================================= */
+
+.home-resource-layout {
+    display:grid;
+    grid-template-columns:58px 1fr;
+    gap:11px;
+    width:100%;
+    height:100%;
+    align-items:stretch;
+}
+
+.attributes-column {
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    padding:3px 8px 3px 0;
+    border-right:1px solid #292929;
+}
+
+.attributes-column div {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:11px;
+}
+
+.attributes-column span {
+    color:#8f8f8f;
+}
+
+.attributes-column b {
+    color:#f2f2f2;
+    font-weight:normal;
+}
+
+
+.resources-column {
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    min-width:0;
+}
+
+
+.resource-card {
+    padding:5px 0;
+    cursor:pointer;
+}
+
+
+.resource-value-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:3px;
+    font-size:10px;
+}
+
+.resource-value-row span:first-child {
+    color:#888;
+}
+
+.resource-value-row span:last-child {
+    color:#fff;
+}
+
+
+.bar {
+    height:14px;
+    display:flex;
+    align-items:center;
+    gap:2px;
+    overflow:hidden;
+}
+
+.bar-segment {
+    width:1px;
+    height:11px;
+    flex:1 1 1px;
+    max-width:2px;
+    background:#242424;
+}
+
+
+.resistance-row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.resistance-row div {
+    border-top:1px solid #292929;
+    border-bottom:1px solid #292929;
+    padding:5px 2px;
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+}
+
+.resistance-row span {
+    color:#888;
+}
+
+.resistance-row b {
+    color:#fff;
+    font-weight:normal;
+}
+
+
+.status-row {
+    display:grid;
+    grid-template-columns:1.35fr .8fr .8fr;
+    gap:4px;
+}
+
+.status-box {
+    min-height:31px;
+    border:1px solid #292929;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    font-size:10px;
+}
+
+.status-box b {
+    font-weight:normal;
+    color:#fff;
+}
+
+.status-label {
+    color:#888;
+}
+
+.status-symbol {
+    color:#aaa;
+    font-size:12px;
+}
+
+
+/* =========================================================
+   HOME 1 – Layout Fix
+   Eigenschaften links bleiben unverändert
+========================================================= */
+
+/* LeP / AsP rechts größer */
+#home1 .bar {
+    width:100%;
+    height:22px;
+}
+
+#home1 .bar-segment {
+    height:20px;
+}
+
+/* Rechte Spalte vollständig ausnutzen */
+#home1 .resources-column {
+    min-width:0;
+    width:100%;
+}
+
+/* Status zwingend drei Zeilen */
+#home1 .status-row {
+    display:flex !important;
+    flex-direction:column !important;
+    grid-template-columns:none !important;
+    gap:3px;
+    width:100%;
+}
+
+/* Jede Zeile über komplette rechte Breite */
+#home1 .status-row .status-box {
+    display:flex !important;
+    flex-direction:row !important;
+    justify-content:space-between !important;
+    align-items:center !important;
+
+    width:100%;
+    min-height:21px;
+    box-sizing:border-box;
+
+    padding:2px 5px;
+}
+
+/* Beschriftung links */
+#home1 .status-row .status-label {
+    display:flex;
+    align-items:center;
+    gap:4px;
+}
+
+/* Wert rechts */
+#home1 .status-row .status-box > b {
+    margin-left:auto;
+    white-space:nowrap;
+}
+
+
+/* HOME 1 – Ressourcenbalken bis zur rechten Zahlenkante */
+#home1 .resource-card {
+    width:100%;
+    box-sizing:border-box;
+}
+
+#home1 .resource-value-row {
+    width:100%;
+    box-sizing:border-box;
+}
+
+#home1 .bar {
+    width:100% !important;
+    max-width:none !important;
+    box-sizing:border-box;
+}
+
+#home1 .bar-segment {
+    max-width:none !important;
+}
+
+
+/* =========================================================
+   KAMPF
+========================================================= */
+
+#kampf {
+    overflow-y:auto;
+}
+
+.combat-page {
+    padding:0 8px 24px 8px;
+}
+
+.combat-resource-row {
+    display:grid;
+    grid-template-columns:30px 1fr 30px;
+    gap:6px;
+    align-items:center;
+    margin:4px 0 10px 0;
+}
+
+.combat-resource-button {
+    width:30px;
+    height:42px;
+    padding:0;
+    border:1px solid #777;
+    background:#151515;
+    color:#fff;
+    font-family:inherit;
+    font-size:22px;
+    line-height:40px;
+    text-align:center;
+}
+
+.combat-resource {
+    min-width:0;
+}
+
+.combat-resource-title {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:3px;
+    font-size:12px;
+}
+
+#kampf .combat-lep-bar {
+    width:100% !important;
+    max-width:none !important;
+    height:20px;
+    box-sizing:border-box;
+}
+
+#kampf .combat-lep-bar .bar-segment {
+    height:18px;
+    max-width:none !important;
+}
+
+.combat-section-title {
+    margin:8px 0 4px 0;
+    font-size:11px;
+    letter-spacing:1px;
+    color:#aaa;
+}
+
+.combat-divider {
+    height:1px;
+    background:#444;
+    margin:10px 0 8px 0;
+}
+
+.combat-weapon {
+    padding:5px 0 7px 0;
+    border-bottom:1px solid #292929;
+}
+
+.combat-weapon-name {
+    font-size:13px;
+    font-weight:bold;
+    line-height:1.2;
+}
+
+.combat-weapon-values {
+    display:flex;
+    gap:12px;
+    margin-top:3px;
+    font-size:12px;
+}
+
+.combat-weapon-tp {
+    margin-top:2px;
+    font-size:12px;
+}
+
+.combat-ability {
+    display:grid;
+    grid-template-columns:18px 1fr 20px;
+    gap:4px;
+    align-items:center;
+    min-height:27px;
+    border-bottom:1px solid #252525;
+    font-size:11px;
+}
+
+.combat-ability-number {
+    color:#777;
+}
+
+.combat-ability-name {
+    min-width:0;
+    line-height:1.15;
+}
+
+.combat-ability-type {
+    text-align:center;
+    font-weight:bold;
+    color:#aaa;
+}
+
+.combat-loading {
+    padding:8px 0;
+    color:#777;
+    font-size:11px;
+}
+
+
+
+
+/* Kampf – kompakte Vollbreite */
+
+#kampf .combat-page {
+    padding:0;
+}
+
+#kampf .combat-resource {
+    width:100%;
+    box-sizing:border-box;
+    margin:0 0 10px 0;
+}
+
+#kampf .combat-resource-title {
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+#kampf .combat-lep-bar {
+    width:100% !important;
+    max-width:none !important;
+    box-sizing:border-box;
+}
+
+#kampf .combat-lep-bar .bar-segment {
+    max-width:none !important;
+}
+
+
+
+/* Kampf – LeP-Historie */
+
+.combat-resource-history {
+    display:flex;
+    align-items:center;
+    gap:7px;
+    width:100%;
+    height:17px;
+    padding:2px 0 0;
+    overflow-x:auto;
+    overflow-y:hidden;
+    white-space:nowrap;
+    scrollbar-width:none;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.combat-resource-history::-webkit-scrollbar {
+    display:none;
+}
+
+.combat-resource-history span {
+    flex:0 0 auto;
+}
+
+.combat-resource-history .loss {
+    color:#e14b43;
+}
+
+.combat-resource-history .gain {
+    color:#54b96a;
+}
+
+
+/* Manöver antippbar */
+
+.combat-ability {
+    cursor:pointer;
+}
+
+
+/* Manöver Detail */
+
+#manoever {
+    overflow-y:auto;
+}
+
+.maneuver-detail {
+    padding:8px 10px 30px 10px;
+}
+
+.maneuver-detail-type {
+    color:#888;
+    font-size:10px;
+    letter-spacing:1px;
+    margin-bottom:4px;
+}
+
+.maneuver-detail-title {
+    font-size:16px;
+    font-weight:bold;
+    line-height:1.15;
+    margin-bottom:7px;
+}
+
+.maneuver-detail-rule {
+    font-size:12px;
+    line-height:1.35;
+    white-space:normal;
+}
+
+
+
+/* =========================================================
+   MAGIE
+========================================================= */
+
+#magicContent {
+    width:100%;
+    box-sizing:border-box;
+    font-size:12px;
+    line-height:1.15;
+}
+
+.magic-resource-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:3px;
+    font-size:13px;
+}
+
+.magic-asp-bar {
+    display:flex;
+    width:100%;
+    height:12px;
+    gap:1px;
+    margin-bottom:9px;
+}
+
+.magic-asp-bar span {
+    flex:1;
+    min-width:1px;
+    background:#242424;
+}
+
+.magic-asp-bar span.filled {
+    background:#eee;
+}
+
+.magic-section-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:0 0 4px;
+    font-size:12px;
+}
+
+.magic-active-list {
+    margin-bottom:10px;
+}
+
+.magic-active-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:5px;
+    padding:1px 0;
+    width:100%;
+    border:0;
+    background:transparent;
+    color:#eee;
+    font-family:monospace;
+    text-align:left;
+    cursor:pointer;
+}
+
+.magic-active-row span {
+    min-width:0;
+    flex:1;
+}
+
+.magic-active-row b {
+    flex:none;
+    white-space:nowrap;
+}
+
+.magic-active-row:active {
+    color:#e66b21;
+}
+
+.magic-empty {
+    opacity:.65;
+    margin-bottom:4px;
+}
+
+.magic-title {
+    font-weight:bold;
+    font-size:13px;
+    margin:2px 0 6px;
+}
+
+.magic-group {
+    padding:0 0 7px;
+    margin:0 0 7px;
+    border-bottom:1px solid #555;
+}
+
+.magic-group:last-child {
+    border-bottom:none;
+}
+
+.magic-group-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:5px;
+    margin-bottom:3px;
+    font-size:12px;
+}
+
+.magic-group-head b {
+    min-width:0;
+    flex:1;
+}
+
+.magic-group-head span {
+    flex:none;
+    white-space:nowrap;
+}
+
+.magic-spells {
+    padding-left:5px;
+}
+
+.magic-spell-row {
+    display:flex;
+    align-items:flex-start;
+    gap:5px;
+    padding:1px 0;
+}
+
+.magic-spell-row > span:first-child {
+    flex:none;
+}
+
+.magic-spell-row > span:last-child {
+    min-width:0;
+    flex:1;
+}
+
+.magic-spell-row {
+    width:100%;
+    border:0;
+    background:transparent;
+    color:#eee;
+    font-family:monospace;
+    text-align:left;
+    cursor:pointer;
+}
+
+.magic-spell-row:active {
+    color:#e66b21;
+}
+
+#spellOverlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:150;
+    padding:5px;
+    background:rgba(0,0,0,.94);
+}
+
+body.spell-mode #cornerBack,
+body.spell-mode .corner.br {
+    z-index:170 !important;
+}
+
+body.spell-mode .corner.br {
+    display:block;
+    border-bottom-color:#e66b21;
+    border-right-color:#e66b21;
+}
+
+#spellPopup {
+    position:relative;
+    width:100%;
+    height:100%;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    background:#0e0d0c;
+}
+
+#spellPopup::before,
+#spellPopup::after {
+    content:"";
+    position:absolute;
+    width:14px;
+    height:14px;
+    pointer-events:none;
+}
+
+#spellPopup::before {
+    top:0;
+    left:0;
+    border-top:2px solid #e66b21;
+    border-left:2px solid #e66b21;
+}
+
+#spellPopup::after {
+    right:0;
+    bottom:0;
+    border-right:2px solid #e66b21;
+    border-bottom:2px solid #e66b21;
+}
+
+.spell-popup-head {
+    flex:none;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 28px;
+    gap:5px;
+    align-items:start;
+    padding:9px 8px 5px;
+}
+
+.spell-popup-head h2 {
+    margin:0;
+    color:#e66b21;
+    font-size:15px;
+    line-height:1.12;
+}
+
+.spell-popup-meta {
+    margin-top:2px;
+    color:#888;
+    font-size:9px;
+}
+
+.spell-popup-close {
+    width:28px;
+    height:28px;
+    padding:0;
+    border:1px solid #4d443d;
+    background:#171513;
+    color:#eee;
+    font:18px monospace;
+}
+
+#spellPopupBody {
+    min-height:0;
+    flex:1;
+    overflow-y:auto;
+    touch-action:pan-y;
+    scrollbar-width:none;
+    padding:0 8px 12px;
+}
+
+#spellPopupBody::-webkit-scrollbar {
+    display:none;
+}
+
+.spell-block {
+    margin:7px 0;
+}
+
+.spell-block h3 {
+    margin:0 0 2px;
+    color:#aaa;
+    font-size:10px;
+    font-weight:normal;
+    letter-spacing:.5px;
+}
+
+.spell-block p {
+    margin:0;
+    font-size:11px;
+    line-height:1.3;
+    white-space:pre-wrap;
+}
+
+.spell-extension {
+    padding:4px 0;
+    border-bottom:1px solid #292622;
+}
+
+.spell-extension-head {
+    display:flex;
+    justify-content:space-between;
+    gap:5px;
+    font-size:10px;
+}
+
+.spell-extension-head span {
+    color:#888;
+    white-space:nowrap;
+}
+
+.spell-qs {
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:3px;
+    margin:5px 0 7px;
+}
+
+.spell-qs button {
+    min-width:0;
+    height:27px;
+    padding:0;
+    border:1px solid #4d443d;
+    background:#171513;
+    color:#eee;
+    font:11px monospace;
+}
+
+.spell-qs button.selected {
+    border-color:#e66b21;
+    background:#e66b21;
+    color:#080808;
+}
+
+.spell-activate {
+    width:100%;
+    min-height:31px;
+    border:1px solid #e66b21;
+    background:#e66b21;
+    color:#080808;
+    font:700 10px monospace;
+}
+
+.spell-activate:disabled {
+    opacity:.45;
+}
+
+.spell-deactivate {
+    width:100%;
+    min-height:31px;
+    margin-top:5px;
+    border:1px solid #a33f39;
+    background:#24110f;
+    color:#e86860;
+    font:700 10px monospace;
+}
+
+.spell-loading {
+    padding:20px 8px;
+    color:#777;
+    font-size:11px;
+}
+
+/* ==================================================
+   SONDERFERTIGKEITEN
+   ================================================== */
+
+#sonderfertigkeiten .special-page {
+    width:100%;
+}
+
+.special-main-title {
+    padding:1px 2px 4px;
+    border-bottom:1px solid rgba(255,255,255,.45);
+    font-size:14px;
+    font-weight:800;
+}
+
+.special-group {
+    margin-top:7px;
+}
+
+.special-group-head {
+    padding:2px;
+    border-bottom:1px solid rgba(255,255,255,.35);
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.special-row {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:5px;
+    width:100%;
+    padding:4px 2px;
+    border:0;
+    border-bottom:1px solid #252525;
+    background:transparent;
+    color:#eee;
+    font:11px monospace;
+    text-align:left;
+}
+
+.special-row span:first-child {
+    min-width:0;
+}
+
+.special-row span:last-child {
+    color:#888;
+    white-space:nowrap;
+}
+
+#sfdetail {
+    overflow-y:auto;
+}
+
+.special-detail {
+    padding:8px 9px 28px;
+}
+
+.special-detail h2 {
+    margin:2px 0 3px;
+    color:#e66b21;
+    font-size:15px;
+    line-height:1.15;
+}
+
+.special-detail-meta {
+    color:#888;
+    font-size:9px;
+}
+
+.special-detail-block {
+    margin-top:9px;
+}
+
+.special-detail-block h3 {
+    margin:0 0 2px;
+    color:#aaa;
+    font-size:10px;
+    font-weight:normal;
+}
+
+.special-detail-block p {
+    margin:0;
+    font-size:11px;
+    line-height:1.35;
+    white-space:pre-wrap;
+}
+
+
+
+/* Magie – AsP-Balken exakt wie LeP auf Kampfseite */
+#magie .combat-lep-bar {
+    width:100% !important;
+    max-width:none !important;
+    height:20px;
+    box-sizing:border-box;
+}
+
+#magie .combat-lep-bar .bar-segment {
+    height:18px;
+    max-width:none !important;
+}
+
+
+/* Magie – Abstand AsP -> Aktive Zauber wie LeP -> Waffen */
+#magie .magic-section-head {
+    margin-top:8px;
+}
+
+
+
+/* ==================================================
+   TALENTE – Rabbit R1
+   ================================================== */
+
+#talente .talent-page {
+    width:100%;
+    padding:0;
+}
+
+#talente .talent-main-title {
+    display:grid;
+    grid-template-columns:1fr 34px;
+    align-items:center;
+    font-size:15px;
+    font-weight:800;
+    line-height:1.1;
+    padding:1px 2px 4px;
+    border-bottom:1px solid rgba(255,255,255,.45);
+}
+
+#talente .talent-main-title span:last-child {
+    text-align:right;
+}
+
+#talente .talent-group {
+    margin-top:7px;
+}
+
+#talente .talent-group:first-child {
+    margin-top:4px;
+}
+
+#talente .talent-group-head {
+    display:grid;
+    grid-template-columns:1fr 34px;
+    align-items:center;
+    gap:4px;
+    padding:2px 2px;
+    border-bottom:1px solid rgba(255,255,255,.35);
+    font-size:14px;
+    font-weight:800;
+    line-height:1.15;
+    text-transform:uppercase;
+}
+
+#talente .talent-group-head b {
+    text-align:right;
+    font-size:15px;
+}
+
+#talente .talent-group-members {
+    padding-top:2px;
+}
+
+#talente .talent-row {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:baseline;
+    column-gap:5px;
+    padding:1px 2px;
+    font-size:13px;
+    line-height:1.18;
+}
+
+#talente .talent-name {
+    min-width:0;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+#talente .talent-probe {
+    white-space:nowrap;
+    text-align:right;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+}
+
+
+
+
+/* ==================================================
+   MAGIE – Schriftgröße wie Talente
+   ================================================== */
+
+#magie .magic-group-head {
+    font-size:14px;
+    line-height:1.15;
+}
+
+#magie .magic-group-head b {
+    font-size:14px;
+}
+
+#magie .magic-spell-row {
+    font-size:13px;
+    line-height:1.18;
+}
+
+#magie .magic-active-row {
+    font-size:13px;
+    line-height:1.18;
+}
+
+
+
+
+/* Magie – Zauber bündig wie Talente */
+#magie .magic-spells {
+    padding-left:0;
+}
+
+#magie .magic-spell-row {
+    padding-left:2px;
+    padding-right:2px;
+    gap:0;
+}
+
+
+
+
+/* Echte Offline-Inhalte */
+
+#scrolltest .scroll-real-content {
+    color: #ffffff;
+}
+
+#scrolltest .scroll-real-content * {
+    color: #ffffff;
+}
+
+/* Überschriften / Gruppentitel orange */
+#scrolltest .scroll-real-content h1,
+#scrolltest .scroll-real-content h2,
+#scrolltest .scroll-real-content h3,
+#scrolltest .scroll-real-content h4,
+#scrolltest .scroll-real-content [class*="title"],
+#scrolltest .scroll-real-content [class*="heading"] {
+    color: #e66b21 !important;
+    text-shadow:
+        0 0 3px rgba(230,107,33,.8),
+        0 0 6px rgba(230,107,33,.35);
+}
+
+/* Kopierte Views dürfen keine eigene Bildschirmhöhe erzwingen */
+#scrolltest .scroll-real-content .view {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 0 !important;
+}
+
+
+/* =========================================================
+   OFFLINE CHARAKTERBOGEN DESIGN
+========================================================= */
+
+#scrolltest {
+    background: #050505;
+}
+
+/* Hauptüberschriften */
+#scrolltest > .scrolltest-section > h2 {
+    color: #e66b21 !important;
+    text-shadow:
+        0 0 3px rgba(230,107,33,.9),
+        0 0 7px rgba(230,107,33,.4);
+}
+
+/* Normaler Inhalt */
+#scrolltest .scroll-real-content,
+#scrolltest .scroll-real-content span,
+#scrolltest .scroll-real-content small,
+#scrolltest .scroll-real-content div {
+    color: #fff;
+}
+
+/* Unterüberschriften */
+#scrolltest .scroll-real-content h3,
+#scrolltest .offline-group-head,
+#scrolltest .offline-accordion-head {
+    color: #e66b21 !important;
+    text-shadow: 0 0 4px rgba(230,107,33,.45);
+}
+
+/* Normale Werte */
+#scrolltest .offline-value-row,
+#scrolltest .offline-talent-row,
+#scrolltest .offline-item {
+    color: #fff;
+}
+
+/* Akkordeon-Kopf */
+#scrolltest .offline-accordion-head {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid rgba(230,107,33,.45);
+    background: transparent;
+    padding: 8px 2px;
+    margin: 2px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+    font: inherit;
+    text-align: left;
+}
+
+/* Titel im Akkordeon orange */
+#scrolltest .offline-accordion-head b {
+    color: #e66b21 !important;
+}
+
+/* rechter Wert / Pfeil */
+#scrolltest .offline-accordion-head span {
+    color: #e66b21 !important;
+}
+
+/* Inhalt standardmäßig geschlossen */
+#scrolltest .offline-accordion-body {
+    display: none;
+    padding: 3px 0 7px;
+}
+
+/* geöffnet */
+#scrolltest .offline-accordion.open > .offline-accordion-body {
+    display: block;
+}
+
+/* Listenbuttons */
+#scrolltest .offline-list-button {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    background: transparent;
+    color: #fff !important;
+    padding: 7px 3px;
+    text-align: left;
+    box-sizing: border-box;
+    font: inherit;
+}
+
+#scrolltest .offline-list-button span,
+#scrolltest .offline-list-button small {
+    color: #fff !important;
+}
+
+/* Talentzeilen */
+#scrolltest .offline-talent-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 3px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+#scrolltest .offline-talent-row span,
+#scrolltest .offline-talent-row b {
+    color: #fff !important;
+}
+
+
+/* =========================================================
+   R1 SCROLLTEST
+========================================================= */
+
+#scrolltest {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    background: #050505;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    padding: 8px 10px 30px;
+    box-sizing: border-box;
+}
+
+body.scrolltest-mode #scrolltest {
+    display: block;
+}
+
+.scrolltest-section {
+    min-height: 95vh;
+    box-sizing: border-box;
+    padding: 10px 4px;
+    border-bottom: 1px solid rgba(230,107,33,.45);
+    color: #e66b21;
+    text-shadow:
+        0 0 3px rgba(230,107,33,.9),
+        0 0 7px rgba(230,107,33,.45);
+}
+
+.scrolltest-section h2 {
+    margin: 0 0 10px;
+    font-size: 17px;
+    color: #e66b21;
+}
+
+.scrolltest-section p {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+</style>
 </head>
+
 <body>
-<p>Neex wird geladen...</p>
+
+<div id="app">
+
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <!-- Unsichtbare Touchfläche über der Ecke unten rechts -->
+    <div id="cornerBack" onclick="goBack()"
+         style="
+            position:fixed;
+            right:0;
+            bottom:0;
+            width:22px;
+            height:22px;
+            z-index:90;
+            background:transparent;
+         ">
+    </div>
+
+
+    <!-- ==================================================
+         HOME 1
+    =================================================== -->
+
+    <section class="view active" id="home1">
+
+    <div class="home-resource-layout">
+
+        <!-- Eigenschaften links -->
+        <div class="attributes-column">
+
+            <div><span>MU</span><b id="mu">14</b></div>
+            <div><span>KL</span><b id="kl">15</b></div>
+            <div><span>IN</span><b id="in">16</b></div>
+            <div><span>CH</span><b id="ch">17</b></div>
+            <div><span>FF</span><b id="ff">14</b></div>
+            <div><span>GE</span><b id="ge">17</b></div>
+            <div><span>KO</span><b id="ko">16</b></div>
+            <div><span>KK</span><b id="kk">14</b></div>
+
+        </div>
+
+
+        <!-- Ressourcen rechts -->
+        <div class="resources-column">
+
+            <div class="resource-card"
+                 >
+
+                <div class="resource-value-row">
+                    <span>LeP</span>
+                    <span id="lep">--/--</span>
+                </div>
+
+                <div class="bar" id="lepBar"></div>
+
+            </div>
+
+
+            <div class="resource-card"
+                 >
+
+                <div class="resource-value-row">
+                    <span>AsP</span>
+                    <span id="asp">--/--</span>
+                </div>
+
+                <div class="bar" id="aspBar"></div>
+
+            </div>
+
+
+            <div class="resistance-row">
+
+                <div>
+                    <span>SK</span>
+                    <b id="sk">--</b>
+                </div>
+
+                <div>
+                    <span>ZK</span>
+                    <b id="zk">--</b>
+                </div>
+
+            </div>
+
+
+            <div class="status-row">
+
+                <div class="status-box schips-box">
+                    <span class="status-label">Schips</span>
+                    <b id="schips">--/--</b>
+                </div>
+
+                <div class="status-box">
+                    <span class="status-symbol">☠</span>
+                    <b id="zustand">0</b>
+                </div>
+
+                <div class="status-box">
+                    <span class="status-symbol">✦</span>
+                    <b id="aktiveZauber">0</b>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <button type="button" id="offlineUpdateButton"
+            onclick="event.stopPropagation(); updateOfflineHero()">
+        <span id="offlineUpdateLabel">↻ HELD AKTUALISIEREN</span>
+    <span id="offlineSnapshotStatus" style="display:block;font-size:8px;margin-top:2px;"></span>
+    </button>
+
+</section>
+
+
+<!-- ==================================================
+         HOME 2
+    =================================================== -->
+
+    <section class="view" id="home2">
+
+        <div class="menu-title">CHARAKTER</div>
+
+        <div class="menu-item"
+             onclick="openView('eigenschaften')">
+            <span>EIGENSCHAFTEN</span>
+            <span class="menu-arrow">&gt;</span>
+        </div>
+
+        <div class="menu-item"
+             onclick="openView('talente')">
+            <span>TALENTE</span>
+            <span class="menu-arrow">&gt;</span>
+        </div>
+
+        <div class="menu-item"
+             onclick="openView('sonderfertigkeiten')">
+            <span>SONDERFERTIGKEITEN</span>
+            <span class="menu-arrow">&gt;</span>
+        </div>
+
+        <div class="menu-item"
+             onclick="openView('ausruestung')">
+            <span>AUSRÜSTUNG</span>
+            <span class="menu-arrow">&gt;</span>
+        </div>
+
+        <div class="menu-item"
+             onclick="openView('vorteile')">
+            <span>VORTEILE / NACHTEILE</span>
+            <span class="menu-arrow">&gt;</span>
+        </div>
+
+        <div class="menu-item"
+             onclick="openView('notizen')">
+            <span>NOTIZEN</span>
+            <span class="menu-arrow">&gt;</span>
+        </div>
+
+        <div class="page-hint" style="margin-top:auto">
+            RAD ↑ STATUS
+        </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         KAMPF
+    =================================================== -->
+
+    <section class="view" id="kampf" onclick="handlePageTap(event)">
+
+        <div class="combat-page">
+
+            <div
+                class="combat-resource interactive"
+                
+            >
+                <div class="combat-resource-title">
+                    <span>LeP</span>
+                    <b id="kampfLep">--/--</b>
+                </div>
+
+                <div
+                    class="bar combat-lep-bar"
+                    id="kampfLepBar"
+                ></div>
+
+                <div
+                    id="kampfLepHistory"
+                    class="combat-resource-history"
+                ></div>
+            </div>
+
+
+            <div class="magic-section-head combat-penalty-row">
+                <b>KAMPFERSCHWERNIS</b>
+                <span id="combatPenalty">-0</span>
+            </div>
+
+            <div class="combat-section-title">
+                WAFFEN
+            </div>
+
+            <div id="combatWeapons">
+                <div class="combat-loading">
+                    Lade Waffen …
+                </div>
+            </div>
+
+
+            <div class="combat-divider"></div>
+
+            <div class="combat-section-title">
+                MANÖVER
+            </div>
+
+            <div id="combatAbilities">
+                <div class="combat-loading">
+                    Lade Manöver …
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- MANÖVER -->
+
+    <section class="view" id="manoever">
+
+        <div class="maneuver-detail">
+
+            <div
+                class="maneuver-detail-type"
+                id="maneuverDetailType"
+            ></div>
+
+            <div
+                class="maneuver-detail-title"
+                id="maneuverDetailTitle"
+            >
+                MANÖVER
+            </div>
+
+            <div class="combat-divider"></div>
+
+            <div
+                class="maneuver-detail-rule"
+                id="maneuverDetailRule"
+            ></div>
+
+        </div>
+
+    </section>
+
+
+    <section class="view" id="magie" onclick="handlePageTap(event)">
+
+        <div id="magicContent">
+            <div class="combat-loading">
+                Magiedaten werden geladen ...
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         CHARAKTER-PLATZHALTER
+    =================================================== -->
+
+    <section class="view" id="eigenschaften">
+        <div class="header">
+            <span class="back" onclick="goBack()">←</span>
+            <span class="header-title">EIGENSCHAFTEN</span>
+            <span></span>
+        </div>
+        <div class="placeholder">
+            <h2>EIGENSCHAFTEN</h2>
+            <p>Echte Werte folgen.</p>
+        </div>
+    </section>
+
+    <section class="view" id="talente" onclick="handlePageTap(event)">
+        <div class="talent-page">
+            <div class="talent-main-title">
+                <span>TALENTE</span>
+                <span>FW</span>
+            </div>
+            <div id="talentContent">
+                <div class="combat-loading">
+                    Lade Talente …
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="view" id="sonderfertigkeiten" onclick="handlePageTap(event)">
+        <div class="special-page">
+            <div class="special-main-title">SONDERFERTIGKEITEN</div>
+            <div id="specialContent">
+                <div class="combat-loading">
+                    Lade Sonderfertigkeiten …
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="view" id="sfdetail">
+        <div class="special-detail">
+            <div id="specialDetailMeta" class="special-detail-meta"></div>
+            <h2 id="specialDetailTitle">SONDERFERTIGKEIT</h2>
+            <div id="specialDetailContent"></div>
+        </div>
+    </section>
+
+    <section class="view" id="ausruestung">
+        <div class="header">
+            <span class="back" onclick="goBack()">←</span>
+            <span class="header-title">AUSRÜSTUNG</span>
+            <span></span>
+        </div>
+        <div class="placeholder">
+            <h2>AUSRÜSTUNG</h2>
+            <p>Echte Ausrüstung folgt.</p>
+        </div>
+    </section>
+
+    <section class="view" id="vorteile">
+        <div class="header">
+            <span class="back" onclick="goBack()">←</span>
+            <span class="header-title">VORTEILE / NACHTEILE</span>
+            <span></span>
+        </div>
+        <div class="placeholder">
+            <h2>VORTEILE / NACHTEILE</h2>
+            <p>Echte Daten folgen.</p>
+        </div>
+    </section>
+
+    <section class="view" id="notizen">
+        <div class="header">
+            <span class="back" onclick="goBack()">←</span>
+            <span class="header-title">NOTIZEN</span>
+            <span></span>
+        </div>
+        <div class="placeholder">
+            <h2>NOTIZEN</h2>
+            <p>Notizen folgen.</p>
+        </div>
+    </section>
+
+
+    <!-- Ressourcen-Bearbeitung in der Offline-Version entfernt -->
+
+    <div id="spellOverlay" onclick="closeSpellDetail()">
+        <article id="spellPopup" onclick="event.stopPropagation()">
+            <div class="spell-loading">Zauberdetails werden geladen …</div>
+        </article>
+    </div>
+
+    <div id="error"></div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+let hero = null;
+
+let currentView = "home1";
+let historyStack = [];
+
+
+let wheelLocked = false;
+
+const mainPages = [
+    "home1",
+    "kampf",
+    "magie",
+    "talente",
+    "sonderfertigkeiten"
+];
+
+let pageIndex = 0;
+let contentMode = false;
+let maneuverReturnContentMode = false;
+
+
+
+/* =========================================================
+   KAMPFDATEN
+========================================================= */
+
+
+/* =========================================================
+   LOKALER CACHE
+========================================================= */
+
+const CACHE_HERO = "neex_hero_v1";
+const CACHE_COMBAT = "neex_combat_v1";
+const CACHE_LAST_PAGE = "neex_last_page_v1";
+
+/* Offline-Heldenbogen: kompletter lokal gespeicherter Stand */
+const CACHE_SNAPSHOT = "neex_offline_snapshot_v1";
+
+let offlineSpellDetails = {};
+let offlineLepHistory = [];
+let offlineAspHistory = [];
+
+async function loadOfflineHistories() {
+    const lepResponse = await fetch(
+        "/api/neex/history/lep",
+        { cache:"no-store" }
+    );
+
+    if (!lepResponse.ok)
+        throw new Error("LeP-Verlauf: HTTP " + lepResponse.status);
+
+    const aspResponse = await fetch(
+        "/api/neex/history/asp",
+        { cache:"no-store" }
+    );
+
+    if (!aspResponse.ok)
+        throw new Error("AsP-Verlauf: HTTP " + aspResponse.status);
+
+    offlineLepHistory = await lepResponse.json();
+    offlineAspHistory = await aspResponse.json();
+}
+
+async function loadOfflineSpellDetails() {
+    const ids = [
+        ...new Set(
+            (magicData?.spell_groups || [])
+                .flatMap(group => group.spells || [])
+                .map(spell => Number(spell.id))
+                .filter(Boolean)
+        )
+    ];
+
+    const details = {};
+
+    for (const id of ids) {
+        const response = await fetch(
+            "/api/neex/magic/" + id,
+            { cache:"no-store" }
+        );
+
+        if (!response.ok)
+            throw new Error("Zauberdetail " + id + ": HTTP " + response.status);
+
+        details[id] = await response.json();
+    }
+
+    offlineSpellDetails = details;
+}
+
+function saveOfflineSnapshot() {
+    if (!hero || !combatData || !magicData || !talentData)
+        return false;
+
+    const snapshot = {
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        hero: hero,
+        combat: combatData,
+        magic: magicData,
+        talents: talentData,
+        spellDetails: offlineSpellDetails,
+        lepHistory: offlineLepHistory,
+        aspHistory: offlineAspHistory
+    };
+
+    cacheSave(CACHE_SNAPSHOT, snapshot);
+    return true;
+}
+
+function loadOfflineSnapshot() {
+    return cacheLoad(CACHE_SNAPSHOT);
+}
+
+function cacheSave(key, data) {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch(e) {
+        // Cache darf die App niemals blockieren
+    }
+}
+
+function cacheLoad(key) {
+    try {
+        const raw = localStorage.getItem(key);
+
+        if (!raw)
+            return null;
+
+        return JSON.parse(raw);
+    } catch(e) {
+        return null;
+    }
+}
+
+let combatData = null;
+
+function combatTypeLetter(type) {
+
+    if (type === "Basismanöver")
+        return "B";
+
+    if (type === "Spezialmanöver")
+        return "S";
+
+    if (type === "Passiv")
+        return "P";
+
+    return "";
+}
+
+
+function combatDisplayName(ability) {
+
+    let name = ability.name || "";
+
+    if (
+        Number(ability.level) > 0 &&
+        name.includes("I-")
+    ) {
+        const base =
+            name.split(" I-")[0];
+
+        name =
+            base + " " +
+            "I".repeat(Number(ability.level));
+    }
+
+    return name;
+}
+
+
+
+let combatScrollPosition = 0;
+let lepHistoryRequestId = 0;
+
+function openManeuver(index) {
+
+    if (
+        !combatData ||
+        !combatData.abilities ||
+        !combatData.abilities[index]
+    )
+        return;
+
+    const ability =
+        combatData.abilities[index];
+
+    document.getElementById(
+        "maneuverDetailTitle"
+    ).textContent =
+        combatDisplayName(ability);
+
+    document.getElementById(
+        "maneuverDetailType"
+    ).textContent =
+        ability.type || "KAMPFSONDERFERTIGKEIT";
+
+    document.getElementById(
+        "maneuverDetailRule"
+    ).textContent =
+        ability.rule_text || "Kein Regeltext vorhanden.";
+
+    const combatPage = document.getElementById("kampf");
+
+    if (combatPage) {
+        combatScrollPosition = combatPage.scrollTop;
+    }
+
+    historyStack.push("kampf");
+    maneuverReturnContentMode = contentMode;
+    contentMode = true;
+    document.body.classList.add("content-mode");
+    showView("manoever");
+    document.getElementById("manoever")
+        .classList.add("content-active");
+}
+
+
+function renderCombat() {
+
+    if (!combatData)
+        return;
+
+    const weapons =
+        document.getElementById("combatWeapons");
+
+    const abilities =
+        document.getElementById("combatAbilities");
+
+    weapons.innerHTML = "";
+
+    (combatData.weapons || []).forEach((weapon, index) => {
+
+        const item =
+            document.createElement("div");
+
+        item.className = "combat-weapon";
+
+        item.innerHTML = `
+            <div class="combat-weapon-name">
+                ${index + 1}. ${esc(String(weapon.name || "").trim())}
+            </div>
+
+            <div class="combat-weapon-values">
+                <span>AT <b>${esc(weapon.attack)}</b></span>
+                <span>PA <b>${esc(weapon.parry)}</b></span>
+            </div>
+
+            <div class="combat-weapon-tp">
+                TP <b>${esc(weapon.tp)}</b>
+            </div>
+        `;
+
+        weapons.appendChild(item);
+    });
+
+
+    abilities.innerHTML = "";
+
+    (combatData.abilities || []).forEach(
+        (ability, index) => {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "combat-ability interactive";
+
+            item.onclick = function(event) {
+                event.stopPropagation();
+                openManeuver(index);
+            };
+
+            item.innerHTML = `
+                <span class="combat-ability-number">
+                    ${index + 1}.
+                </span>
+
+                <span class="combat-ability-name">
+                    ${esc(combatDisplayName(ability))}
+                </span>
+
+                <span class="combat-ability-type">
+                    ${esc(combatTypeLetter(ability.type))}
+                </span>
+            `;
+
+            abilities.appendChild(item);
+        }
+    );
+}
+
+
+
+async function loadLepHistory() {
+
+    const requestId = ++lepHistoryRequestId;
+
+    const box =
+        document.getElementById("kampfLepHistory");
+
+    if (!box)
+        return;
+
+    try {
+
+        const entries = offlineLepHistory || [];
+
+        if (requestId !== lepHistoryRequestId)
+            return;
+
+        box.innerHTML = "";
+
+        entries.forEach(entry => {
+
+            const delta =
+                Number(entry.delta) || 0;
+
+            if (delta === 0)
+                return;
+
+            const span =
+                document.createElement("span");
+
+            span.className =
+                delta < 0 ? "loss" : "gain";
+
+            span.textContent =
+                delta > 0
+                    ? "+" + delta
+                    : String(delta);
+
+            box.appendChild(span);
+        });
+
+        requestAnimationFrame(() => {
+            box.scrollLeft = box.scrollWidth;
+        });
+
+    } catch(e) {
+
+        box.innerHTML = "";
+
+    }
+}
+
+
+function esc(value){
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+
+let talentData = null;
+let specialAbilityData = [];
+let specialScrollPosition = 0;
+let specialReturnContentMode = false;
+
+function renderAttributes(attributes) {
+    const keys = ["mu", "kl", "in", "ch", "ff", "ge", "ko", "kk"];
+
+    keys.forEach(key => {
+        const element = document.getElementById(key);
+        const value =
+            attributes[key.toUpperCase()] ?? attributes[key];
+
+        if (element && value !== undefined && value !== null)
+            element.textContent = value;
+    });
+}
+
+function renderTalents() {
+    const box = document.getElementById("talentContent");
+
+    if (!box || !talentData)
+        return;
+
+    const groups = talentData.talent_groups || [];
+
+    if (!groups.length) {
+        box.innerHTML =
+            '<div class="combat-loading">Keine Talentgruppen ausgewählt</div>';
+        return;
+    }
+
+    box.innerHTML = groups.map(group => {
+
+        const talents = (group.talents || []).map(talent => {
+
+            const values = (talent.probe_values || [])
+                .map(value => value ?? "–")
+                .join("/");
+
+            return `
+                <div class="talent-row">
+                    <span class="talent-name">
+                        ${esc(talent.name)}
+                    </span>
+
+                    <span class="talent-probe">
+                        ${values}
+                    </span>
+                </div>
+            `;
+        }).join("");
+
+        return `
+            <div class="talent-group">
+
+                <div class="talent-group-head">
+                    <span>${esc(group.group_name)}</span>
+                    <b>${Number(group.fw) || 0}</b>
+                </div>
+
+                <div class="talent-group-members">
+                    ${talents}
+                </div>
+
+            </div>
+        `;
+    }).join("");
+}
+
+
+function specialDisplayName(ability) {
+    let name = String(ability.name || "");
+    const level = Number(ability.level) || 0;
+
+    if (level > 0 && name.includes(" I-"))
+        name = name.split(" I-")[0] + " " + "I".repeat(level);
+
+    return name;
+}
+
+
+function manualSpecialAbility(raw) {
+    const match = String(raw || "").match(/^\[(B|S|N)\]\s*(.*)$/);
+    const kind = match ? match[1] : "N";
+
+    return {
+        name: match ? match[2] : String(raw || ""),
+        category: "Weitere",
+        maneuver_type:
+            kind === "B"
+                ? "Basismanöver"
+                : kind === "S"
+                  ? "Spezialmanöver"
+                  : ""
+    };
+}
+
+
+function renderSpecialAbilities() {
+    const box = document.getElementById("specialContent");
+
+    if (!box)
+        return;
+
+    if (!specialAbilityData.length) {
+        box.innerHTML =
+            '<div class="combat-loading">Keine Sonderfertigkeiten zugeordnet</div>';
+        return;
+    }
+
+    const groups = new Map();
+
+    specialAbilityData.forEach((ability, index) => {
+        const category = ability.category || "Allgemein";
+        if (!groups.has(category))
+            groups.set(category, []);
+        groups.get(category).push({ability, index});
+    });
+
+    box.innerHTML = [...groups.entries()].map(([category, entries]) => `
+        <section class="special-group">
+            <div class="special-group-head">${esc(category)}</div>
+            ${entries.map(({ability, index}) => `
+                <button type="button" class="special-row interactive"
+                        onclick="event.stopPropagation(); openSpecialAbility(${index})">
+                    <span>${esc(specialDisplayName(ability))}</span>
+                    <span>${esc(ability.maneuver_type || ability.subtype || "")}</span>
+                </button>
+            `).join("")}
+        </section>
+    `).join("");
+}
+
+
+function specialDetailBlock(label, value) {
+    if (!value)
+        return "";
+
+    return `
+        <section class="special-detail-block">
+            <h3>${esc(label)}</h3>
+            <p>${esc(value)}</p>
+        </section>
+    `;
+}
+
+
+function openSpecialAbility(index) {
+    const ability = specialAbilityData[index];
+    if (!ability)
+        return;
+
+    document.getElementById("specialDetailTitle").textContent =
+        specialDisplayName(ability);
+
+    document.getElementById("specialDetailMeta").textContent =
+        [ability.category, ability.subtype, ability.maneuver_type]
+            .filter(Boolean)
+            .join(" · ");
+
+    document.getElementById("specialDetailContent").innerHTML =
+        specialDetailBlock("AP-Wert", ability.ap) +
+        specialDetailBlock("Voraussetzungen", ability.requirements) +
+        specialDetailBlock("Regel", ability.rule_text);
+
+    const page = document.getElementById("sonderfertigkeiten");
+    specialScrollPosition = page ? page.scrollTop : 0;
+    specialReturnContentMode = contentMode;
+    historyStack.push("sonderfertigkeiten");
+
+    contentMode = true;
+    document.body.classList.add("content-mode");
+    showView("sfdetail");
+    document.getElementById("sfdetail").classList.add("content-active");
+}
+
+
+async function loadTalents() {
+    try {
+        const r = await fetch(
+            "/api/neex/talents",
+            { cache:"no-store" }
+        );
+
+        if (!r.ok)
+            throw new Error("HTTP " + r.status);
+
+        talentData = await r.json();
+        specialAbilityData = [
+            ...(talentData.special_abilities || []),
+            ...(talentData.manual_special_abilities || [])
+                .map(manualSpecialAbility)
+        ];
+
+        renderAttributes(talentData.attributes || {});
+        renderTalents();
+        renderSpecialAbilities();
+
+    } catch(e) {
+
+        const box =
+            document.getElementById("talentContent");
+
+        if (box)
+            box.innerHTML =
+                '<div class="combat-loading">Talentdaten nicht erreichbar</div>';
+
+        const specialBox = document.getElementById("specialContent");
+        if (specialBox)
+            specialBox.innerHTML =
+                '<div class="combat-loading">Sonderfertigkeiten nicht erreichbar</div>';
+    }
+}
+
+let magicData = null;
+let aspHistoryRequestId = 0;
+let spellOverlayOpen = false;
+let spellDetailRequestId = 0;
+let selectedSpell = null;
+let selectedSpellQs = 0;
+let selectedSpellActive = false;
+let spellSaving = false;
+
+function renderMagic(){
+    const box = document.getElementById("magicContent");
+    if (!box || !magicData) return;
+
+    const activeMagic = Math.max(0, Number(magicData.active_magic) || 0);
+    const parallel = Number(magicData.parallel_casting) === 1;
+    const activePenalty = parallel ? Math.max(activeMagic - 1, 0) : activeMagic;
+    const totalMagicPenalty = Math.max(
+        0,
+        Number(magicData.magic_penalty) || 0
+    );
+
+    const asp = Number(magicData.asp) || 0;
+    const aspMax = Number(magicData.asp_max) || 0;
+    const aspPct = aspMax > 0 ? Math.max(0, Math.min(100, asp / aspMax * 100)) : 0;
+
+    const segments = 30;
+    const filled = Math.round((aspPct / 100) * segments);
+    let aspBar = "";
+
+    for (let i = 0; i < segments; i++) {
+        aspBar += `<span class="${i < filled ? 'filled' : ''}"></span>`;
+    }
+
+    const activeSpells = (magicData.active_spells || []).length
+        ? magicData.active_spells.map(spell => `
+            <button type="button" class="magic-active-row interactive"
+                    onclick="event.stopPropagation(); openSpellDetail(${Number(spell.magic_id) || 0})">
+                <span>${esc(spell.name)}</span>
+                <b>QS ${Number(spell.qs) || 1}</b>
+            </button>
+        `).join("")
+        : `<div class="magic-empty">Keine aktiven Zauber</div>`;
+
+    const groups = (magicData.spell_groups || []).map(group => `
+        <div class="magic-group">
+            <div class="magic-group-head">
+                <b>${esc(group.name)}</b>
+                <span>ZfW ${Number(group.zfw) || 0}</span>
+            </div>
+
+            <div class="magic-spells">
+                ${(group.spells || []).map(spell => `
+                    <button type="button"
+                            class="magic-spell-row interactive"
+                            onclick="event.stopPropagation(); openSpellDetail(${Number(spell.id) || 0})">
+                        <span>${esc(spell.name)}</span>
+                    </button>
+                `).join("")}
+            </div>
+        </div>
+    `).join("");
+
+    box.innerHTML = `
+        <div class="combat-resource interactive"
+             >
+
+            <div class="combat-resource-title">
+                <span>AsP</span>
+                <b>${asp}/${aspMax}</b>
+            </div>
+
+            <div class="bar combat-lep-bar"
+                 id="magicAspBar"></div>
+
+            <div id="magicAspHistory"
+                 class="combat-resource-history"></div>
+
+        </div>
+
+        <div class="magic-section-head magic-penalty-row">
+            <b>ZAUBERERSCHWERNIS</b>
+            <span>-${totalMagicPenalty}</span>
+        </div>
+
+        <div class="magic-section-head">
+            <b>AKTIVE ZAUBER</b>
+            <span>[ ${activeMagic} ] / ${activePenalty}</span>
+        </div>
+
+        <div class="magic-active-list">
+            ${activeSpells}
+        </div>
+
+        <div class="magic-title">ZAUBER</div>
+
+        <div class="magic-group-list">
+            ${groups}
+        </div>
+    `;
+    const magicAspBar = document.getElementById("magicAspBar");
+
+    if (magicAspBar) {
+        const SEGMENTS = 30;
+        const active = Math.round((aspPct / 100) * SEGMENTS);
+
+        magicAspBar.innerHTML = "";
+
+        for (let i = 0; i < SEGMENTS; i++) {
+            const segment = document.createElement("span");
+            segment.className = "bar-segment";
+
+            if (i < active) {
+                segment.classList.add("asp-on");
+            }
+
+            magicAspBar.appendChild(segment);
+        }
+    }
+
+}
+
+
+function spellBlock(label, value) {
+    if (!value)
+        return "";
+
+    return `
+        <section class="spell-block">
+            <h3>${esc(label)}</h3>
+            <p>${esc(value)}</p>
+        </section>
+    `;
+}
+
+
+function renderSpellDetail() {
+    const popup = document.getElementById("spellPopup");
+
+    if (!popup || !selectedSpell)
+        return;
+
+    const spell = selectedSpell;
+    const meta = [spell.category, spell.subtype]
+        .filter(Boolean)
+        .join(" · ");
+
+    const extensions = (spell.extensions || []).map(extension => `
+        <div class="spell-extension">
+            <div class="spell-extension-head">
+                <b>${esc(extension.name)}</b>
+                <span>FW ${esc(extension.fw_required ?? "–")}${extension.ap_cost ? " · " + esc(extension.ap_cost) : ""}</span>
+            </div>
+            ${spellBlock("Wirkung", extension.effect)}
+            ${spellBlock("Voraussetzung", extension.requirement)}
+        </div>
+    `).join("");
+
+    popup.innerHTML = `
+        <div class="spell-popup-head">
+            <div>
+                <h2>${esc(spell.name)}</h2>
+                <div class="spell-popup-meta">${esc(meta)}</div>
+            </div>
+            <button type="button" class="spell-popup-close"
+                    onclick="closeSpellDetail()" aria-label="Schließen">×</button>
+        </div>
+
+        <div id="spellPopupBody">
+            ${spellBlock("Probe", spell.probe)}
+
+            <section class="spell-block">
+                <h3>QUALITÄTSSTUFE</h3>
+                <div class="spell-qs">
+                    ${[1, 2, 3, 4, 5, 6].map(qs => `
+                        <button type="button"
+                                data-qs="${qs}"
+                                class="${selectedSpellQs === qs ? "selected" : ""}"
+                                disabled>${qs}</button>
+                    `).join("")}
+                </div>
+            </section>
+
+            ${spellBlock("Wirkung", spell.effect)}
+            ${extensions ? `
+                <section class="spell-block">
+                    <h3>ZAUBERERWEITERUNGEN</h3>
+                    ${extensions}
+                </section>
+            ` : ""}
+            ${spellBlock("Voraussetzungen", spell.requirements)}
+        </div>
+    `;
+}
+
+
+async function openSpellDetail(magicId) {
+    magicId = Number(magicId);
+
+    if (!magicId)
+        return;
+
+    const activeSpell = (magicData?.active_spells || [])
+        .find(spell => Number(spell.magic_id) === magicId);
+
+    spellOverlayOpen = true;
+    selectedSpell = null;
+    selectedSpellActive = Boolean(activeSpell);
+    selectedSpellQs = activeSpell ? Number(activeSpell.qs) || 1 : 0;
+    document.body.classList.add("spell-mode");
+
+    const overlay = document.getElementById("spellOverlay");
+    const popup = document.getElementById("spellPopup");
+
+    overlay.style.display = "block";
+
+    const spell = offlineSpellDetails[magicId];
+
+    if (!spell) {
+        closeSpellDetail();
+        showError("Zauberdetail nicht im gespeicherten Stand vorhanden");
+        return;
+    }
+
+    selectedSpell = spell;
+    renderSpellDetail();
+}
+
+function closeSpellDetail() {
+    if (spellSaving)
+        return;
+
+    spellDetailRequestId++;
+    spellOverlayOpen = false;
+    selectedSpell = null;
+    selectedSpellQs = 0;
+    selectedSpellActive = false;
+    document.body.classList.remove("spell-mode");
+    document.getElementById("spellOverlay").style.display = "none";
+}
+
+
+function selectSpellQs(qs) {
+    if (spellSaving)
+        return;
+
+    qs = Number(qs);
+    if (qs < 1 || qs > 6)
+        return;
+
+    selectedSpellQs = qs;
+
+    document.querySelectorAll("#spellPopup .spell-qs button")
+        .forEach(button => {
+            button.classList.toggle(
+                "selected",
+                Number(button.dataset.qs) === qs
+            );
+        });
+
+    const activateButton = document.getElementById("spellActivate");
+    if (activateButton)
+        activateButton.disabled = false;
+}
+
+
+/* Offline-Version:
+   Zauber können nur angezeigt werden.
+   Aktivieren, QS ändern und Beenden sind deaktiviert.
+*/
+
+
+async function loadAspHistory() {
+
+    const requestId = ++aspHistoryRequestId;
+
+    const box = document.getElementById("magicAspHistory");
+
+    if (!box) return;
+
+    try {
+
+        const entries = offlineAspHistory || [];
+
+        if (requestId !== aspHistoryRequestId)
+            return;
+
+        box.innerHTML = "";
+
+        entries.forEach(entry => {
+
+            const delta = Number(entry.delta) || 0;
+
+            if (delta === 0) return;
+
+            const span = document.createElement("span");
+
+            span.className =
+                delta < 0 ? "loss" : "gain";
+
+            span.textContent =
+                delta > 0 ? "+" + delta : String(delta);
+
+            box.appendChild(span);
+        });
+
+        requestAnimationFrame(() => {
+            box.scrollLeft = box.scrollWidth;
+        });
+
+    } catch(e) {
+
+        box.innerHTML = "";
+
+    }
+}
+
+
+async function loadMagic(){
+    try {
+        const r = await fetch("/api/neex/magic", {
+            cache: "no-store"
+        });
+
+        if (!r.ok)
+            throw new Error("HTTP " + r.status);
+
+        magicData = await r.json();
+        renderMagic();
+        loadAspHistory();
+    }
+    catch(e) {
+        const box = document.getElementById("magicContent");
+
+        if (box)
+            box.innerHTML =
+                '<div class="combat-loading">Magiedaten nicht erreichbar</div>';
+    }
+}
+
+
+async function loadCombat() {
+
+    try {
+
+        const r = await fetch(
+            "/api/neex/combat",
+            { cache:"no-store" }
+        );
+
+        if (!r.ok)
+            throw new Error("HTTP " + r.status);
+
+        combatData = await r.json();
+
+        cacheSave(CACHE_COMBAT, combatData);
+        renderCombat();
+
+    }
+    catch(e) {
+
+        const box =
+            document.getElementById(
+                "combatAbilities"
+            );
+
+        if (box)
+            box.innerHTML =
+                '<div class="combat-loading">' +
+                'Kampfdaten nicht erreichbar' +
+                '</div>';
+    }
+}
+
+
+/* =========================================================
+   LIVE-DATEN
+========================================================= */
+
+function renderHero(data) {
+
+    if (!data)
+        return;
+
+    hero = data;
+
+        document.getElementById("lep").textContent =
+            hero.lep + "/" + hero.lep_max;
+
+        const kampfLep =
+            document.getElementById("kampfLep");
+
+        if (kampfLep)
+            kampfLep.textContent =
+                hero.lep + "/" + hero.lep_max;
+
+        if (document.getElementById("kampfLepBar"))
+            drawSegments(
+                "kampfLepBar",
+                hero.lep_max > 0
+                    ? (hero.lep / hero.lep_max) * 100
+                    : 0,
+                "lep"
+            );
+
+        document.getElementById("asp").textContent =
+            hero.asp + "/" + hero.asp_max;
+
+        document.getElementById("schips").textContent =
+            hero.schips + "/" + hero.schips_max;
+
+        document.getElementById("sk").textContent =
+            hero.sk;
+
+        document.getElementById("zk").textContent =
+            hero.zk;
+
+        // Kampferschwernis zentral aus dem Heldenmonitor
+        const combatPenalty =
+            Math.max(0, Number(hero.penalty) || 0);
+
+        const combatPenaltyEl =
+            document.getElementById("combatPenalty");
+
+        if (combatPenaltyEl)
+            combatPenaltyEl.textContent =
+                "-" + combatPenalty;
+
+        // Zustand live aus dem Heldenmonitor
+        document.getElementById("zustand").textContent =
+            hero.state ?? 0;
+
+
+        // Aktive Magie:
+        // links  = Anzahl aktiver Zauber
+        // rechts = daraus entstehende Erschwernis
+        const activeMagic =
+            Math.max(0, Number(hero.active_magic) || 0);
+
+        const hasParallelCasting =
+            Number(hero.parallel_casting) === 1;
+
+        const magicPenalty =
+            hasParallelCasting
+                ? Math.max(activeMagic - 1, 0)
+                : activeMagic;
+
+        document.getElementById("aktiveZauber").textContent =
+            "[ " + activeMagic + " ] / " + magicPenalty;
+
+
+        const lepPct =
+            hero.lep_max > 0
+            ? (hero.lep / hero.lep_max) * 100
+            : 0;
+
+        const aspPct =
+            hero.asp_max > 0
+            ? (hero.asp / hero.asp_max) * 100
+            : 0;
+
+        // Retro-Ressourcenanzeige aus feinen senkrechten Strichen
+        function drawSegments(elementId, percent, type) {
+
+            const bar = document.getElementById(elementId);
+            const SEGMENTS = 30;
+
+            const pct = Math.max(0, Math.min(100, percent));
+            const active = Math.round((pct / 100) * SEGMENTS);
+
+            bar.innerHTML = "";
+
+            let activeClass = "";
+
+            if (type === "lep") {
+                if (pct <= 25) {
+                    activeClass = "lep-low";
+                }
+                else if (pct <= 50) {
+                    activeClass = "lep-mid";
+                }
+                else {
+                    activeClass = "lep-on";
+                }
+            }
+            else {
+                activeClass = "asp-on";
+            }
+
+            for (let i = 0; i < SEGMENTS; i++) {
+
+                const segment = document.createElement("span");
+                segment.className = "bar-segment";
+
+                if (i < active) {
+                    segment.classList.add(activeClass);
+                }
+
+                bar.appendChild(segment);
+            }
+        }
+
+        drawSegments("lepBar", lepPct, "lep");
+        drawSegments("aspBar", aspPct, "asp");
+
+}
+
+
+let heroLoadPromise = null;
+
+async function loadHero(forceRefresh = false) {
+
+    if (heroLoadPromise) {
+        await heroLoadPromise;
+
+        if (!forceRefresh)
+            return;
+    }
+
+    const requestPromise = (async () => {
+
+    try {
+
+        const r = await fetch(
+            "/api/neex",
+            { cache:"no-store" }
+        );
+
+        if (!r.ok)
+            throw new Error("HTTP " + r.status);
+
+        const freshHero = await r.json();
+
+        const oldHero = hero;
+
+        const heroChanged =
+            !oldHero ||
+            oldHero.lep !== freshHero.lep ||
+            oldHero.lep_max !== freshHero.lep_max ||
+            oldHero.asp !== freshHero.asp ||
+            oldHero.asp_max !== freshHero.asp_max ||
+            oldHero.schips !== freshHero.schips ||
+            oldHero.schips_max !== freshHero.schips_max ||
+            oldHero.state !== freshHero.state ||
+            oldHero.active_magic !== freshHero.active_magic ||
+            oldHero.parallel_casting !== freshHero.parallel_casting ||
+            oldHero.penalty !== freshHero.penalty ||
+            oldHero.magic_penalty !== freshHero.magic_penalty ||
+            JSON.stringify(oldHero.active_spells || []) !==
+                JSON.stringify(freshHero.active_spells || []) ||
+            oldHero.sk !== freshHero.sk ||
+            oldHero.zk !== freshHero.zk;
+
+        if (heroChanged) {
+            cacheSave(CACHE_HERO, freshHero);
+            renderHero(freshHero);
+
+            if (oldHero && oldHero.lep !== freshHero.lep)
+                loadLepHistory();
+        }
+
+
+        if (magicData) {
+
+            const oldMagicState = JSON.stringify({
+                asp: magicData.asp,
+                asp_max: magicData.asp_max,
+                active_magic: magicData.active_magic,
+                parallel_casting: magicData.parallel_casting,
+                magic_penalty: magicData.magic_penalty,
+                active_spells: magicData.active_spells || []
+            });
+
+            magicData.asp = freshHero.asp;
+            magicData.asp_max = freshHero.asp_max;
+            magicData.active_magic = freshHero.active_magic;
+            magicData.parallel_casting = freshHero.parallel_casting;
+            magicData.magic_penalty = freshHero.magic_penalty;
+            magicData.active_spells =
+                freshHero.active_spells || [];
+
+            const newMagicState = JSON.stringify({
+                asp: magicData.asp,
+                asp_max: magicData.asp_max,
+                active_magic: magicData.active_magic,
+                parallel_casting: magicData.parallel_casting,
+                magic_penalty: magicData.magic_penalty,
+                active_spells: magicData.active_spells || []
+            });
+
+            if (
+                currentView === "magie" &&
+                oldMagicState !== newMagicState
+            ) {
+                renderMagic();
+            }
+
+            if (
+                oldMagicState !== newMagicState &&
+                oldHero && oldHero.asp !== freshHero.asp
+            ) {
+                loadAspHistory();
+            }
+        }
+
+    }
+
+    catch(e) {
+
+        if (!hero)
+            showError("Heldenmonitor nicht erreichbar");
+
+    }
+
+    })();
+
+    heroLoadPromise = requestPromise;
+
+    try {
+        await requestPromise;
+    } finally {
+        if (heroLoadPromise === requestPromise)
+            heroLoadPromise = null;
+    }
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function showView(id) {
+
+    document.querySelectorAll(".view")
+        .forEach(v => v.classList.remove("active"));
+
+    const target = document.getElementById(id);
+
+    if (!target)
+        return;
+
+    target.classList.add("active");
+    target.scrollTop = 0;
+
+    currentView = id;
+
+    const mainIndex = mainPages.indexOf(id);
+    if (mainIndex >= 0)
+        pageIndex = mainIndex;
+
+    if (id === "magie" && magicData) {
+        renderMagic();
+        loadAspHistory();
+    }
+}
+
+
+function openView(id) {
+
+    if (id === currentView)
+        return;
+
+    historyStack.push(currentView);
+
+    showView(id);
+}
+
+
+function goBack() {
+
+    if (spellOverlayOpen) {
+        closeSpellDetail();
+        return;
+    }
+
+    if (currentView === "sfdetail") {
+        const detailPage = document.getElementById("sfdetail");
+        if (detailPage)
+            detailPage.classList.remove("content-active");
+
+        contentMode = specialReturnContentMode;
+        document.body.classList.toggle("content-mode", contentMode);
+
+        if (historyStack.length > 0)
+            showView(historyStack.pop());
+        else
+            showView("sonderfertigkeiten");
+
+        const specialPage = document.getElementById("sonderfertigkeiten");
+        if (specialPage)
+            specialPage.scrollTop = specialScrollPosition;
+
+        return;
+    }
+
+    /*
+       Manöver-Detail:
+       zuerst zur Kampfseite zurück.
+       Der Inhaltsmodus der Kampfseite bleibt erhalten.
+    */
+    if (currentView === "manoever") {
+        const maneuverPage = document.getElementById("manoever");
+        if (maneuverPage)
+            maneuverPage.classList.remove("content-active");
+
+        contentMode = maneuverReturnContentMode;
+        document.body.classList.toggle(
+            "content-mode",
+            contentMode
+        );
+
+        if (historyStack.length > 0) {
+            const previous = historyStack.pop();
+            showView(previous);
+        } else {
+            showView("kampf");
+        }
+
+        const combatPage = document.getElementById("kampf");
+        if (combatPage) {
+            combatPage.scrollTop = combatScrollPosition;
+        }
+        return;
+    }
+
+    /*
+       Inhaltsmodus verlassen:
+       Seite bleibt dabei dieselbe.
+    */
+    if (leaveContentMode()) {
+        return;
+    }
+
+    /* HOME 2 geht zurück auf HOME 1 */
+    if (currentView === "home2") {
+        historyStack = [];
+        showView("home1");
+        return;
+    }
+
+    /* Auf HOME 1 passiert nichts */
+    if (currentView === "home1")
+        return;
+
+    if (historyStack.length > 0) {
+        const previous = historyStack.pop();
+        showView(previous);
+    }
+    else {
+        showView("home1");
+    }
+}
+
+
+/* =========================================================
+   RESSOURCEN
+========================================================= */
+
+/* Offline-Version:
+   LeP und AsP werden ausschließlich angezeigt.
+   Ressourcen können nicht verändert werden.
+*/
+
+
+/* =========================================================
+   R1 SCROLLRAD
+========================================================= */
+
+function showMainPage(index) {
+
+    index = Math.max(
+        0,
+        Math.min(mainPages.length - 1, index)
+    );
+
+    pageIndex = index;
+
+    try {
+        localStorage.setItem(
+            CACHE_LAST_PAGE,
+            mainPages[pageIndex]
+        );
+    } catch(e) {
+        // Speicherung darf Navigation nicht blockieren
+    }
+
+    contentMode = false;
+    document.body.classList.remove("content-mode");
+    document.querySelectorAll(".view.content-active")
+        .forEach(view => view.classList.remove("content-active"));
+    historyStack = [];
+
+    showView(mainPages[pageIndex]);
+}
+
+
+function handlePageTap(event) {
+
+    if (currentView === "home1")
+        return;
+
+    /*
+       Klicks auf interaktive Elemente dürfen später
+       weiterhin ihre eigene Funktion ausführen.
+    */
+    /*
+       Nur echte Bedienelemente abfangen.
+       Die Hauptseite selbst besitzt ebenfalls onclick
+       und darf deshalb NICHT über [onclick] ausgeschlossen werden.
+    */
+    if (event.target.closest(
+        "button, .back, .interactive"
+    )) {
+        return;
+    }
+
+    activateCurrentPage();
+}
+
+
+function activateCurrentPage() {
+
+    if (currentView === "home1")
+        return;
+
+    contentMode = true;
+    document.body.classList.add("content-mode");
+
+    const page = document.getElementById(currentView);
+
+    if (page)
+        page.classList.add("content-active");
+}
+
+
+function leaveContentMode() {
+
+    if (!contentMode)
+        return false;
+
+    const page = document.getElementById(currentView);
+
+    if (page)
+        page.classList.remove("content-active");
+
+    contentMode = false;
+    document.body.classList.remove("content-mode");
+
+    return true;
+}
+
+
+function scrollInsidePage(amount) {
+
+    const page = document.getElementById(currentView);
+
+    if (!page)
+        return;
+
+    page.scrollBy({
+        top: amount,
+        behavior: "smooth"
+    });
+}
+
+
+function lockWheel() {
+
+    if (wheelLocked)
+        return false;
+
+    wheelLocked = true;
+
+    setTimeout(() => {
+        wheelLocked = false;
+    }, 180);
+
+    return true;
+}
+
+
+function rabbitScrollUp() {
+
+    if (document.body.classList.contains("scrolltest-mode")) {
+        const test = document.getElementById("scrolltest");
+        if (test)
+            test.scrollBy({top:-70, behavior:"smooth"});
+        return;
+    }
+
+
+    if (spellOverlayOpen) {
+        const popupBody = document.getElementById("spellPopupBody");
+        if (popupBody)
+            popupBody.scrollBy({top:-55, behavior:"smooth"});
+        return;
+    }
+
+
+
+    if (contentMode) {
+        scrollInsidePage(-55);
+        return;
+    }
+
+    if (!lockWheel())
+        return;
+
+    if (pageIndex > 0)
+        showMainPage(pageIndex - 1);
+}
+
+
+function rabbitScrollDown() {
+
+    if (document.body.classList.contains("scrolltest-mode")) {
+        const test = document.getElementById("scrolltest");
+        if (test)
+            test.scrollBy({top:70, behavior:"smooth"});
+        return;
+    }
+
+
+    if (spellOverlayOpen) {
+        const popupBody = document.getElementById("spellPopupBody");
+        if (popupBody)
+            popupBody.scrollBy({top:55, behavior:"smooth"});
+        return;
+    }
+
+
+
+    if (contentMode) {
+        scrollInsidePage(+55);
+        return;
+    }
+
+    if (!lockWheel())
+        return;
+
+    if (pageIndex < mainPages.length - 1)
+        showMainPage(pageIndex + 1);
+}
+
+
+window.addEventListener(
+    "scrollUp",
+    rabbitScrollUp
+);
+
+window.addEventListener(
+    "scrollDown",
+    rabbitScrollDown
+);
+
+
+
+/* =========================================================
+   TOUCH-NAVIGATION
+
+   Normalmodus:
+   Wischen hoch   = nächste Hauptseite
+   Wischen runter = vorherige Hauptseite
+
+   Inhaltsmodus:
+   Browser scrollt normal innerhalb der Seite.
+========================================================= */
+
+let touchStartY = 0;
+let touchStartX = 0;
+let touchTracking = false;
+
+const TOUCH_SWIPE_MIN = 35;
+
+
+document.addEventListener(
+    "touchstart",
+    function(event) {
+
+        /* Neue Offline-Scrollansicht:
+           Touch vollständig der WebView überlassen. */
+        if (document.body.classList.contains("scrolltest-mode")) {
+            touchTracking = false;
+            return;
+        }
+
+        if (spellOverlayOpen) {
+            touchTracking = false;
+            return;
+        }
+
+        /* Popup/Resource-Bearbeitung nicht beeinflussen */
+
+
+        /*
+           Im orangefarbenen Inhaltsmodus übernimmt
+           der Browser das normale Scrollen.
+        */
+        if (contentMode)
+            return;
+
+        if (!event.touches || event.touches.length !== 1)
+            return;
+
+        touchStartY = event.touches[0].clientY;
+        touchStartX = event.touches[0].clientX;
+        touchTracking = true;
+
+    },
+    { passive:true }
+);
+
+
+document.addEventListener(
+    "touchmove",
+    function(event) {
+
+        if (!touchTracking || contentMode)
+            return;
+
+        /*
+           Im weißen Hauptseitenmodus verhindern wir,
+           dass der Browser die Seite verschiebt.
+        */
+        event.preventDefault();
+
+    },
+    { passive:false }
+);
+
+
+document.addEventListener(
+    "touchend",
+    function(event) {
+
+        if (!touchTracking || contentMode) {
+            touchTracking = false;
+            return;
+        }
+
+        touchTracking = false;
+
+        if (!event.changedTouches ||
+            event.changedTouches.length !== 1)
+            return;
+
+        const endY =
+            event.changedTouches[0].clientY;
+
+        const endX =
+            event.changedTouches[0].clientX;
+
+        const deltaY =
+            endY - touchStartY;
+
+        const deltaX =
+            endX - touchStartX;
+
+        /*
+           Kleine Bewegungen bleiben normale Taps.
+           Außerdem muss die Bewegung überwiegend
+           vertikal sein.
+        */
+        if (
+            Math.abs(deltaY) < TOUCH_SWIPE_MIN ||
+            Math.abs(deltaY) <= Math.abs(deltaX)
+        )
+            return;
+
+        /* Finger nach oben -> nächste Seite */
+        if (deltaY < 0) {
+
+            if (pageIndex < mainPages.length - 1)
+                showMainPage(pageIndex + 1);
+
+            return;
+        }
+
+        /* Finger nach unten -> vorherige Seite */
+        if (deltaY > 0) {
+
+            if (pageIndex > 0)
+                showMainPage(pageIndex - 1);
+        }
+
+    },
+    { passive:true }
+);
+
+
+/* =========================================================
+   R1 SEITENTASTER
+========================================================= */
+
+/*
+   Unsere Bedienregel:
+
+   kurzer Seitentaster = ZURÜCK
+
+   - Popup: Abbruch
+   - Detailseite: vorherige Seite
+   - HOME 2: HOME 1
+   - HOME 1: nichts
+*/
+
+window.addEventListener(
+    "sideClick",
+    function() {
+        goBack();
+    }
+);
+
+
+/* =========================================================
+   FEHLER
+========================================================= */
+
+function showError(text) {
+
+    const e =
+        document.getElementById("error");
+
+    e.textContent = text;
+    e.style.display = "block";
+
+    setTimeout(() => {
+        e.style.display = "none";
+    }, 2000);
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+let savedPage = null;
+
+try {
+    savedPage = localStorage.getItem(CACHE_LAST_PAGE);
+} catch(e) {
+    savedPage = null;
+}
+
+if (savedPage && mainPages.includes(savedPage)) {
+    const savedIndex = mainPages.indexOf(savedPage);
+    showMainPage(savedIndex);
+}
+
+
+function showOfflineSnapshotStatus() {
+    const el = document.getElementById("offlineSnapshotStatus");
+    if (!el) return;
+
+    const snapshot = loadOfflineSnapshot();
+
+    if (!snapshot || !snapshot.updatedAt) {
+        el.textContent = "Noch kein Stand gespeichert";
+        return;
+    }
+
+    const date = new Date(snapshot.updatedAt);
+    el.textContent = "Gespeichert: " + date.toLocaleString("de-DE");
+}
+
+async function updateOfflineHero() {
+
+    const label = document.getElementById("offlineUpdateLabel");
+
+    if (label)
+        label.textContent = "WIRD AKTUALISIERT …";
+
+    try {
+
+        await loadHero(true);
+        await loadCombat();
+        await loadMagic();
+        await loadTalents();
+        await loadOfflineSpellDetails();
+        await loadOfflineHistories();
+
+        /*
+           Nach dem vollständigen Aktualisieren die beiden Seiten
+           noch einmal aus den neuen Daten aufbauen. Erst danach
+           die gespeicherten Verläufe einsetzen.
+        */
+        renderCombat();
+        renderMagic();
+
+        await loadLepHistory();
+        await loadAspHistory();
+
+        const saved = saveOfflineSnapshot();
+
+        if (!saved)
+            throw new Error("Snapshot unvollständig");
+
+        const snapshot = loadOfflineSnapshot();
+
+        if (!snapshot)
+            throw new Error("Snapshot nicht lesbar");
+
+        
+
+
+
+        if (label)
+            label.textContent = "HELD AKTUALISIERT ✓";
+
+        setTimeout(() => {
+            if (label)
+                label.textContent = "HELD AKTUALISIEREN";
+        }, 2000);
+
+    } catch(e) {
+
+        if (label)
+            label.textContent = "AKTUALISIERUNG FEHLGESCHLAGEN";
+
+        showError("Held konnte nicht aktualisiert werden");
+
+        setTimeout(() => {
+            if (label)
+                label.textContent = "HELD AKTUALISIEREN";
+        }, 2500);
+    }
+}
+
+
+
+/* ---------------------------------------------------------
+   Lange Offline-Heldenansicht
+--------------------------------------------------------- */
+
+
+function toggleOfflineAccordion(button) {
+
+    const accordion = button.closest(".offline-accordion");
+
+    if (!accordion)
+        return;
+
+    accordion.classList.toggle("open");
+
+    const arrow = button.querySelector(".offline-arrow");
+
+    if (arrow)
+        arrow.textContent =
+            accordion.classList.contains("open") ? "−" : "+";
+}
+
+
+function refreshScrollHeroView() {
+
+    const homeBox = document.getElementById("scroll-home");
+    const combatBox = document.getElementById("scroll-kampf");
+    const magicBox = document.getElementById("scroll-magie");
+    const talentBox = document.getElementById("scroll-talente");
+    const sfBox = document.getElementById("scroll-sf");
+
+    /* =========================
+       RESSOURCEN
+    ========================= */
+
+    if (homeBox && hero) {
+
+        const attrs = talentData?.attributes || {};
+        const keys = ["MU","KL","IN","CH","FF","GE","KO","KK"];
+
+        const attributeHtml = keys.map(key => `
+            <div class="offline-attribute">
+                <b>${key}</b>
+                <span>${esc(attrs[key] ?? "–")}</span>
+            </div>
+        `).join("");
+
+        homeBox.innerHTML = `
+            <div class="offline-attributes">
+                ${attributeHtml}
+            </div>
+
+            <div class="offline-value-row">
+                <b>LeP</b>
+                <span>${Number(hero.lep) || 0}/${Number(hero.lep_max) || 0}</span>
+            </div>
+
+            <div class="offline-value-row">
+                <b>AsP</b>
+                <span>${Number(hero.asp) || 0}/${Number(hero.asp_max) || 0}</span>
+            </div>
+
+            <div class="offline-value-row">
+                <b>SK</b>
+                <span>${hero.sk ?? "–"}</span>
+            </div>
+
+            <div class="offline-value-row">
+                <b>ZK</b>
+                <span>${hero.zk ?? "–"}</span>
+            </div>
+
+            <div class="offline-value-row">
+                <b>Schips</b>
+                <span>${Number(hero.schips) || 0}/${Number(hero.schips_max) || 0}</span>
+            </div>
+
+            <div class="offline-value-row">
+                <b>Zustand</b>
+                <span>${hero.state ?? "–"}</span>
+            </div>
+        `;
+    }
+
+
+    /* =========================
+       KAMPF
+    ========================= */
+
+    if (combatBox && combatData) {
+
+        const weapons = (combatData.weapons || []).map((weapon, index) => `
+            <div class="offline-item">
+                <b>${index + 1}. ${esc(weapon.name || "")}</b>
+
+                <div class="offline-small-values">
+                    <span>AT ${esc(weapon.attack ?? "–")}</span>
+                    <span>PA ${esc(weapon.parry ?? "–")}</span>
+                    <span>TP ${esc(weapon.tp ?? "–")}</span>
+                </div>
+            </div>
+        `).join("");
+
+        const maneuvers = (combatData.abilities || []).map((ability, index) => `
+            <button type="button"
+                    class="offline-list-button"
+                    onclick="event.stopPropagation(); openManeuver(${index})">
+                <span>${esc(combatDisplayName(ability))}</span>
+                <b>${esc(combatTypeLetter(ability.type))}</b>
+            </button>
+        `).join("");
+
+        combatBox.innerHTML = `
+            <h3>WAFFEN</h3>
+
+            ${weapons || '<div class="offline-empty">Keine Waffen</div>'}
+
+            <div class="offline-accordion">
+
+                <button type="button"
+                        class="offline-accordion-head"
+                        onclick="event.stopPropagation(); toggleOfflineAccordion(this)">
+
+                    <b>MANÖVER</b>
+                    <span class="offline-arrow">+</span>
+
+                </button>
+
+                <div class="offline-accordion-body">
+                    ${maneuvers || '<div class="offline-empty">Keine Manöver</div>'}
+                </div>
+
+            </div>
+        `;
+    }
+
+
+    /* =========================
+       MAGIE
+    ========================= */
+
+    if (magicBox && magicData) {
+
+        const groups = (magicData.spell_groups || []).map(group => `
+
+            <div class="offline-group offline-accordion">
+
+                <button type="button"
+                        class="offline-accordion-head"
+                        onclick="event.stopPropagation(); toggleOfflineAccordion(this)">
+
+                    <b>${esc(group.name)}</b>
+
+                    <span>
+                        ZfW ${Number(group.zfw) || 0}
+                        <span class="offline-arrow">+</span>
+                    </span>
+
+                </button>
+
+                <div class="offline-accordion-body">
+
+                    ${(group.spells || []).map(spell => `
+                        <button type="button"
+                                class="offline-list-button"
+                                onclick="event.stopPropagation(); openSpellDetail(${Number(spell.id) || 0})">
+                            <span>${esc(spell.name)}</span>
+                        </button>
+                    `).join("")}
+
+                </div>
+
+            </div>
+
+        `).join("");
+
+        magicBox.innerHTML = `
+            <div class="offline-value-row">
+                <b>AsP</b>
+                <span>${Number(magicData.asp) || 0}/${Number(magicData.asp_max) || 0}</span>
+            </div>
+
+            <div class="offline-value-row">
+                <b>Zaubererschwernis</b>
+                <span>-${Math.max(0, Number(magicData.magic_penalty) || 0)}</span>
+            </div>
+
+            <h3>ZAUBER</h3>
+
+            ${groups || '<div class="offline-empty">Keine Zauber</div>'}
+        `;
+    }
+
+
+    /* =========================
+       TALENTE
+    ========================= */
+
+    if (talentBox && talentData) {
+
+        const groups = (talentData.talent_groups || []).map(group => `
+
+            <div class="offline-group offline-accordion">
+
+                <button type="button"
+                        class="offline-accordion-head"
+                        onclick="event.stopPropagation(); toggleOfflineAccordion(this)">
+
+                    <b>${esc(group.group_name)}</b>
+
+                    <span>
+                        ${Number(group.fw) || 0}
+                        <span class="offline-arrow">+</span>
+                    </span>
+
+                </button>
+
+                <div class="offline-accordion-body">
+
+                    ${(group.talents || []).map(talent => {
+
+                        const probe = (talent.probe_values || [])
+                            .map(value => value ?? "–")
+                            .join("/");
+
+                        return `
+                            <div class="offline-talent-row">
+                                <span>${esc(talent.name)}</span>
+                                <b>${esc(probe)}</b>
+                            </div>
+                        `;
+
+                    }).join("")}
+
+                </div>
+
+            </div>
+
+        `).join("");
+
+        talentBox.innerHTML =
+            groups || '<div class="offline-empty">Keine Talente</div>';
+    }
+
+
+    /* =========================
+       SONDERFERTIGKEITEN
+    ========================= */
+
+    if (sfBox) {
+
+        const groups = new Map();
+
+        (specialAbilityData || []).forEach((ability, index) => {
+
+            const category = ability.category || "Allgemein";
+
+            if (!groups.has(category))
+                groups.set(category, []);
+
+            groups.get(category).push({ability, index});
+        });
+
+        sfBox.innerHTML = [...groups.entries()].map(([category, entries]) => `
+
+            <div class="offline-group">
+
+                <div class="offline-group-head">
+                    <b>${esc(category)}</b>
+                </div>
+
+                ${entries.map(({ability, index}) => `
+                    <button type="button"
+                            class="offline-list-button"
+                            onclick="event.stopPropagation(); openSpecialAbility(${index})">
+
+                        <span>${esc(specialDisplayName(ability))}</span>
+
+                        <small>
+                            ${esc(ability.maneuver_type || ability.subtype || "")}
+                        </small>
+
+                    </button>
+                `).join("")}
+
+            </div>
+
+        `).join("");
+    }
+}
+
+
+const cachedHero = cacheLoad(CACHE_HERO);
+
+if (cachedHero) {
+    renderHero(cachedHero);
+}
+
+const cachedCombat = cacheLoad(CACHE_COMBAT);
+
+if (cachedCombat) {
+    combatData = cachedCombat;
+    renderCombat();
+}
+
+document.body.classList.add("scrolltest-mode");
+
+const offlineSnapshot = loadOfflineSnapshot();
+
+if (offlineSnapshot) {
+
+    hero = offlineSnapshot.hero;
+    combatData = offlineSnapshot.combat;
+    magicData = offlineSnapshot.magic;
+    talentData = offlineSnapshot.talents;
+    offlineSpellDetails = offlineSnapshot.spellDetails || {};
+    offlineLepHistory = offlineSnapshot.lepHistory || [];
+    offlineAspHistory = offlineSnapshot.aspHistory || [];
+
+    specialAbilityData = [
+        ...(talentData?.special_abilities || []),
+        ...(talentData?.manual_special_abilities || []).map(manualSpecialAbility)
+    ];
+
+    renderHero();
+    renderCombat();
+    renderMagic();
+    renderAttributes(talentData?.attributes || []);
+    renderTalents();
+    renderSpecialAbilities();
+
+    /*
+     * Jetzt sind alle fünf Originalbereiche vollständig
+     * aus dem gespeicherten Snapshot gerendert.
+     */
+    document.addEventListener("DOMContentLoaded", () => {
+        refreshScrollHeroView();
+    });
+
+} else {
+
+    showError("Noch kein Held gespeichert. Bitte Held aktualisieren.");
+
+}
+
+showOfflineSnapshotStatus();
+
+/* Offline-Version:
+   Kein automatisches Polling.
+   Neue Heldendaten werden ausschließlich über
+   "Held aktualisieren" geladen.
+*/
+
+</script>
+
+
+
+<div id="scrolltest">
+
+    <section class="scrolltest-section">
+        <h2>RESSOURCEN</h2>
+        <div id="scroll-home" class="scroll-real-content"></div>
+    </section>
+
+    <section class="scrolltest-section">
+        <h2>KAMPF</h2>
+        <div id="scroll-kampf" class="scroll-real-content"></div>
+    </section>
+
+    <section class="scrolltest-section">
+        <h2>MAGIE</h2>
+        <div id="scroll-magie" class="scroll-real-content"></div>
+    </section>
+
+    <section class="scrolltest-section">
+        <h2>TALENTE</h2>
+        <div id="scroll-talente" class="scroll-real-content"></div>
+    </section>
+
+    <section class="scrolltest-section">
+        <h2>SONDERFERTIGKEITEN</h2>
+        <div id="scroll-sf" class="scroll-real-content"></div>
+    </section>
+
+</div>
+
 </body>
 </html>
